@@ -41,16 +41,16 @@ class Products with ChangeNotifier {
 
   List<Product> get items {
     //if (_showFavouritesOnly){
-     // return _items.where((prodItem) => prodItem.isFavourite).toList();
+    // return _items.where((prodItem) => prodItem.isFavourite).toList();
     //}
     return [..._items];
   }
 
   List<Product> get favouriteItems {
-      return _items.where((element) => element.isFavourite).toList();
-    }
+    return _items.where((element) => element.isFavourite).toList();
+  }
 
-  Product findById(String id){
+  Product findById(String id) {
     return _items.firstWhere((element) => element.id == id);
   }
 
@@ -64,8 +64,17 @@ class Products with ChangeNotifier {
     notifyListeners();
   }*/
 
-  void addProduct(){
+  void addProduct(Product product) {
+    final newProduct = Product(
+      title: product.title,
+      description: product.description,
+      price: product.price,
+      imageUrl: product.imageUrl,
+      id: DateTime.now().toString(),
+    );
 
+    _items.add(newProduct);
+    // _items.insert(0, newProduct); at the start of the list.
     notifyListeners();
   }
 }
