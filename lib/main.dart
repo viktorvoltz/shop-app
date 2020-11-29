@@ -39,7 +39,6 @@ class MyApp extends StatelessWidget {
           fontFamily: 'Roboto',
         ),
         home: ProductsOverviewScreen(),
-        
         routes: {
           ProductsOverviewScreen.routeName: (ctx) => ProductsOverviewScreen(),
           ProductDetailScreen.routeName: (ctx) => ProductDetailScreen(),

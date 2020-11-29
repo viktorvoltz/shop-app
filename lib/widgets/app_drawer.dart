@@ -22,7 +22,7 @@ class AppDrawer extends StatelessWidget {
           ),
           Divider(),
           ListTile(
-            leading: Icon(Icons.payment),
+            leading: Icon(Icons.home),
             title: Text('home'),
             onTap: (){
               Navigator.of(context).pushReplacementNamed(ProductsOverviewScreen.routeName);
