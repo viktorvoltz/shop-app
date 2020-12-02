@@ -5,7 +5,7 @@ import 'dart:convert';
 
 class Products with ChangeNotifier {
   List<Product> _items = [
-    Product(
+    /*Product(
       id: 'p1',
       title: 'Red Shirt',
       description: 'A red shirt - it is pretty red!',
@@ -36,7 +36,7 @@ class Products with ChangeNotifier {
       price: 49.99,
       imageUrl:
           'https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Cast-Iron-Pan.jpg/1024px-Cast-Iron-Pan.jpg',
-    ),
+    ),*/
   ];
 
   //var _showFavouritesOnly = false;
@@ -66,32 +66,63 @@ class Products with ChangeNotifier {
     notifyListeners();
   }*/
 
-  Future<void> addProduct(Product product) {
+  Future<void> fetchAndSetProducts() async {
     const url = 'https://flutter-shopapp-41166.firebaseio.com/products.json';
-    return http
-        .post(url,
-            body: json.encode({
-              'title': product.title,
-              'description': product.description,
-              'imageUrl': product.imageUrl,
-              'price': product.price,
-              'isFavourite': product.isFavourite,
-            }))
-        .then((response) {
-          print(json.decode(response.body));
-      final newProduct = Product(
-        title: product.title,
-        description: product.description,
-        price: product.price,
-        imageUrl: product.imageUrl,
-        id: json.decode(response.body)['name'],
-      );
-
-      _items.add(newProduct);
-      // _items.insert(0, newProduct); at the start of the list.
-      notifyListeners();
+    try {
+    final response = await http.get(url);
+    final extractedData = json.decode(response.body) as Map<String, dynamic>;
+    final List<Product> loadedProducts = [];
+    extractedData.forEach((key, value) {
+      loadedProducts.add(Product(
+        id: key,
+        title: value['title'],
+        description: value['description'],
+        price: value['price'],
+        isFavourite: value['isFavourite'],
+        imageUrl: value['imageUrl'],
+      ));
     });
+    _items = loadedProducts;
+    notifyListeners();
+    } catch (error){
+      throw (error);
+    }
   }
+
+  Future<void> addProduct(Product product) async {
+    const url = 'https://flutter-shopapp-41166.firebaseio.com/products.json';
+    try {
+      final response = await http.post(
+        url,
+        body: json.encode({
+          'title': product.title,
+          'description': product.description,
+          'imageUrl': product.imageUrl,
+          'price': product.price,
+          'isFavourite': product.isFavourite,
+        }),
+      );
+       print(json.decode(response.body));
+    final newProduct = Product(
+      title: product.title,
+      description: product.description,
+      price: product.price,
+      imageUrl: product.imageUrl,
+      id: json.decode(response.body)['name'],
+    );
+
+    _items.add(newProduct);
+    // _items.insert(0, newProduct); at the start of the list.
+    notifyListeners();
+    } catch (error) {
+      print(error);
+      throw error;
+    }
+
+   
+  }
+  // print(error);
+  // throw error;
 
   void updateProducts(String id, Product newProduct) {
     final prodIndex = _items.indexWhere((element) => element.id == id);
