@@ -33,18 +33,42 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
   }
 
   @override
-  void didChangeDependencies() {
+  Future<void> didChangeDependencies() async {
     if (_isInit) {
       setState(() {
         _isLoading = true;
       });
-      Provider.of<Products>(context, listen: false)
+      try{
+      await Provider.of<Products>(context, listen: false)
           .fetchAndSetProducts()
           .then((_) {
             setState(() {
               _isLoading = false;
             });
-      });
+      });} catch (error){
+        await showDialog(
+          context: context, 
+          builder: (ctx) {
+          return AlertDialog(
+            title: Text('Internet Connection'),
+            content: Text('Check internet connection'),
+            actions: <Widget>[
+              FlatButton(
+                child: Text('Okay'),
+                onPressed: (){
+                  Navigator.of(ctx).pop();
+                }
+              )
+            ]
+            );
+        });
+      }
+      finally{
+        setState(() {
+          _isLoading = false;
+        });
+        
+      }
     }
     _isInit = false;
     super.didChangeDependencies();
