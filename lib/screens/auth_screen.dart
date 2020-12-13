@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth.dart';
+import '../models/http_exception.dart';
 
 enum AuthMode { Signup, Login }
 
@@ -93,6 +94,8 @@ class AuthCard extends StatefulWidget {
 }
 
 class _AuthCardState extends State<AuthCard> {
+  final _passwordFocusNode = FocusNode();
+  final _confirmPasswordFocusNode = FocusNode();
   final GlobalKey<FormState> _formKey = GlobalKey();
   AuthMode _authMode = AuthMode.Login;
   Map<String, String> _authData = {
@@ -111,12 +114,22 @@ class _AuthCardState extends State<AuthCard> {
     setState(() {
       _isLoading = true;
     });
-    if (_authMode == AuthMode.Login) {
+    try{
+      if (_authMode == AuthMode.Login) {
       // Log user in
+      await Provider.of<Auth>(context, listen: false)
+          .login(_authData['email'], _authData['password']);
     } else {
       // Sign user up
-      await Provider.of<Auth>(context, listen: false).signup(_authData['email'], _authData['password']);
+      await Provider.of<Auth>(context, listen: false)
+          .signup(_authData['email'], _authData['password']);
     }
+    } on HttpException catch (error) {
+      var errorMessage = 'authentication failed';
+    } catch (error){
+      var errorMessage = 'could not authenticate you';
+    }
+    
     setState(() {
       _isLoading = false;
     });
@@ -156,11 +169,14 @@ class _AuthCardState extends State<AuthCard> {
                 TextFormField(
                   decoration: InputDecoration(labelText: 'E-Mail'),
                   keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                  onFieldSubmitted: (_) {
+                    FocusScope.of(context).requestFocus(_passwordFocusNode);
+                  },
                   validator: (value) {
                     if (value.isEmpty || !value.contains('@')) {
                       return 'Invalid email!';
                     }
-                    
                   },
                   onSaved: (value) {
                     _authData['email'] = value;
@@ -169,7 +185,13 @@ class _AuthCardState extends State<AuthCard> {
                 TextFormField(
                   decoration: InputDecoration(labelText: 'Password'),
                   obscureText: true,
+                  focusNode: _passwordFocusNode,
                   controller: _passwordController,
+                  textInputAction: TextInputAction.next,
+                  onFieldSubmitted: (_) {
+                    FocusScope.of(context)
+                        .requestFocus(_confirmPasswordFocusNode);
+                  },
                   validator: (value) {
                     if (value.isEmpty || value.length < 5) {
                       return 'Password is too short!';
@@ -184,6 +206,7 @@ class _AuthCardState extends State<AuthCard> {
                     enabled: _authMode == AuthMode.Signup,
                     decoration: InputDecoration(labelText: 'Confirm Password'),
                     obscureText: true,
+                    focusNode: _confirmPasswordFocusNode,
                     validator: _authMode == AuthMode.Signup
                         ? (value) {
                             if (value != _passwordController.text) {
